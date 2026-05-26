@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wohnungsverwaltung</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Source+Sans+3:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg: #F4F1EC;
+  --surface: #FDFCFA;
+  --surface2: #EDE9E1;
+  --border: #D5CFC4;
+  --text: #1E1C19;
+  --muted: #7A756C;
+  --green: #2A5C2E;
+  --green-light: #E6EFE7;
+  --red: #B83232;
+  --red-light: #FAEAEA;
+  --amber: #C07A10;
+  --amber-light: #FEF5E6;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Source Sans 3', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* HEADER */
+header {
+  background: var(--green);
+  color: white;
+  padding: 0 28px;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+}
+
+header h1 {
+  font-family: 'Lora', serif;
+  font-size: 19px;
+  font-weight: 400;
+  padding: 17px 0;
+}
+
+header .sub {
+  font-size: 11px;
+  opacity: 0.6;
+  margin-top: 2px;
+}
+
+nav {
+  display: flex;
+  gap: 2px;
+  align-items: flex-end;
+}
+
+nav button {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 9px 18px;
+  cursor: pointer;
+  border-radius: 6px 6px 0 0;
+  transition: all 0.18s;
+}
+nav button:hover { color: white; background: rgba(255,255,255,0.1); }
+nav button.active { color: var(--text); background: var(--bg); }
+
+/* CONTENT */
+.content {
+  padding: 26px 28px;
+  max-width: 1060px;
+  margin: 0 auto;
+}
+
+.page { display: none; }
+.page.active { display: block; }
+
+.page-title {
+  font-family: 'Lora', serif;
+  font-size: 20px;
+  font-weight: 400;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* CARDS */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+}
+
+/* FORMS */
+.frow { margin-bottom: 12px; }
+label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+input, select, textarea {
+  width: 100%;
+  padding: 8px 11px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 13px;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.18s;
+}
+input:focus, select:focus { border-color: var(--green); background: white; }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 11px; }
+
+/* BUTTONS */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 15px;
+  border-radius: 6px;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; border: 1px solid transparent;
+  transition: all 0.15s;
+}
+.btn-primary { background: var(--green); color: white; }
+.btn-primary:hover { background: #1e4421; }
+.btn-secondary { background: var(--surface2); color: var(--text); border-color: var(--border); }
+.btn-secondary:hover { background: var(--border); }
+.btn-danger { background: var(--red); color: white; }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+
+/* TABLES */
+table { width: 100%; border-collapse: collapse; }
+th {
+  text-align: left; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--muted); padding: 7px 10px;
+  border-bottom: 2px solid var(--border);
+}
+td { padding: 9px 10px; border-bottom: 1px solid var(--surface2); font-size: 13px; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: var(--bg); }
+
+/* TAGS */
+.tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+.tag-green { background: var(--green-light); color: var(--green); }
+.tag-amber { background: var(--amber-light); color: var(--amber); }
+
+/* UPLOAD */
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 36px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--bg);
+}
+.upload-zone:hover, .upload-zone.over { border-color: var(--green); background: var(--green-light); }
+.upload-zone .ico { font-size: 32px; margin-bottom: 8px; }
+.upload-zone p { color: var(--muted); font-size: 13px; line-height: 1.6; }
+
+/* OCR BOX */
+.ocr-box {
+  background: var(--green-light);
+  border: 1px solid #a8c9aa;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 14px;
+}
+.ocr-box h4 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--green); margin-bottom: 12px; }
+
+/* OVERLAY */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 500;
+  display: none;
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.overlay.open { display: flex; }
+
+.dialog {
+  background: white;
+  border-radius: 12px;
+  padding: 26px;
+  width: 520px;
+  max-width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+.dialog h2 { font-family: 'Lora', serif; font-size: 17px; font-weight: 400; margin-bottom: 18px; }
+.dialog-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+
+/* LOADING */
+#loading {
+  position: fixed; inset: 0;
+  background: rgba(42,92,46,0.88);
+  z-index: 999;
+  display: none;
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: 14px;
+  color: white; font-size: 15px;
+}
+#loading.show { display: flex; }
+.spin {
+  width: 42px; height: 42px;
+  border: 3px solid rgba(255,255,255,0.25);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ABRECHNUNG */
+.abr-meta { color: var(--muted); font-size: 12px; margin-bottom: 18px; line-height: 1.8; }
+.abr-result { margin-top: 16px; padding: 14px; border-radius: 8px; font-weight: 600; font-size: 14px; }
+.abr-nz { background: var(--red-light); color: var(--red); }
+.abr-gt { background: var(--green-light); color: var(--green); }
+.abr-legal { margin-top: 16px; font-size: 11px; color: var(--muted); border-top: 1px solid var(--border); padding-top: 10px; line-height: 1.7; }
+
+/* EMPTY */
+.empty { text-align: center; padding: 48px 20px; color: var(--muted); }
+.empty .ico { font-size: 36px; margin-bottom: 10px; }
+
+@media print {
+  header, nav, .no-print { display: none !important; }
+  .content { padding: 0; max-width: 100%; }
+  .card { box-shadow: none; }
+  body { background: white; }
+}
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="spin"></div><span id="loadingText">Claude analysiert…</span></div>
+
+<header>
+  <div>
+    <h1>🏠 Wohnungsverwaltung</h1>
+    <div class="sub">Nebenkostenabrechnung & Hausverwaltung</div>
+  </div>
+  <nav>
+    <button class="active" onclick="showPage('wohnungen',this)">Wohnungen</button>
+    <button onclick="showPage('kosten',this)">Kosten & Belege</button>
+    <button onclick="showPage('abrechnung',this)">Abrechnung</button>
+  </nav>
+</header>
+
+<div class="content">
+
+  <!-- WOHNUNGEN -->
+  <div class="page active" id="page-wohnungen">
+    <div class="page-title">
+      🏘️ Wohnungen & Mieter
+      <button class="btn btn-primary btn-sm" onclick="openWohnungDlg()">+ Wohnung hinzufügen</button>
+    </div>
+    <div id="wohnungenOut"></div>
+  </div>
+
+  <!-- KOSTEN -->
+  <div class="page" id="page-kosten">
+    <div class="page-title">📄 Kosten & Belege</div>
+    <div class="card">
+      <div style="font-weight:600;margin-bottom:14px">Beleg hochladen — Claude erkennt automatisch</div>
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+        <div class="ico">📷</div>
+        <p><strong style="color:var(--green)">Foto oder Scan hochladen</strong><br>
+        Heizkostenabrechnung, Wasserrechnung, Versicherung, Grundsteuer…<br>
+        JPG · PNG · PDF</p>
+      </div>
+      <input type="file" id="fileInput" accept="image/*,application/pdf" style="display:none" onchange="handleFile(this.files[0])">
+      <div id="ocrBox" class="ocr-box" style="display:none">
+        <h4>✅ Erkannte Daten — bitte kurz prüfen</h4>
+        <div class="grid2">
+          <div class="frow"><label>Kostenart</label><select id="oKostenart"></select></div>
+          <div class="frow"><label>Umlageschlüssel</label><select id="oSchluessel"></select></div>
+        </div>
+        <div class="grid3">
+          <div class="frow"><label>Betrag (€)</label><input type="number" id="oBetrag" step="0.01"></div>
+          <div class="frow"><label>Jahr</label><input type="number" id="oJahr"></div>
+          <div class="frow"><label>Anbieter</label><input type="text" id="oAnbieter"></div>
+        </div>
+        <p id="oErk" style="font-size:12px;color:var(--muted);font-style:italic;margin-bottom:10px"></p>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary btn-sm" onclick="saveBeleg()">✓ Speichern</button>
+          <button class="btn btn-secondary btn-sm" onclick="document.getElementById('ocrBox').style.display='none'">Abbrechen</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="font-weight:600">Gespeicherte Kosten</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:12px;color:var(--muted)">Jahr:</span>
+          <select id="filterJahr" onchange="renderKosten()" style="width:80px;padding:5px 8px;font-size:13px">
+            <option>2023</option><option selected>2024</option><option>2025</option><option>2026</option>
+          </select>
+        </div>
+      </div>
+      <div id="kostenOut"></div>
+    </div>
+  </div>
+
+  <!-- ABRECHNUNG -->
+  <div class="page" id="page-abrechnung">
+    <div class="page-title">📊 Abrechnung erstellen</div>
+    <div class="card">
+      <div class="grid3">
+        <div class="frow"><label>Wohnung</label><select id="aWohnung" onchange="fillMieterSel()"></select></div>
+        <div class="frow"><label>Mieter</label><select id="aMieter"></select></div>
+        <div class="frow"><label>Abrechnungsjahr</label>
+          <select id="aJahr"><option>2023</option><option selected>2024</option><option>2025</option><option>2026</option></select>
+        </div>
+      </div>
+      <button class="btn btn-primary no-print" onclick="calcAbrechnung()">Abrechnung berechnen</button>
+    </div>
+    <div id="abrOut"></div>
+  </div>
+
+</div><!-- /content -->
+
+<!-- DIALOG WOHNUNG -->
+<div class="overlay" id="dlgWohnung" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="dialog" onclick="event.stopPropagation()">
+    <h2 id="dlgWTitel">Wohnung hinzufügen</h2>
+    <div class="grid2">
+      <div class="frow"><label>Bezeichnung</label><input id="wBez" placeholder="z.B. EG links"></div>
+      <div class="frow"><label>Adresse</label><input id="wAdr" placeholder="Musterstr. 1, EG links"></div>
+    </div>
+    <div class="grid2">
+      <div class="frow"><label>Wohnfläche (m²)</label><input id="wFlaeche" type="number" step="0.5"></div>
+      <div class="frow"><label>Zimmer</label><input id="wZimmer" type="number"></div>
+    </div>
+    <hr class="div">
+    <div style="font-weight:600;font-size:13px;margin-bottom:12px">Aktueller Mieter</div>
+    <div class="grid2">
+      <div class="frow"><label>Vorname</label><input id="mVorn"></div>
+      <div class="frow"><label>Nachname</label><input id="mNach"></div>
+    </div>
+    <div class="grid3">
+      <div class="frow"><label>Einzug</label><input id="mEinzug" type="date"></div>
+      <div class="frow"><label>NK-Vorauszahlung / Monat (€)</label><input id="mVoraus" type="number" step="10"></div>
+      <div class="frow"><label>Personen</label><input id="mPers" type="number" value="1"></div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('dlgWohnung').classList.remove('open')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveWohnung()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- DIALOG MIETER -->
+<div class="overlay" id="dlgMieter" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="dialog" onclick="event.stopPropagation()">
+    <h2>Mieter hinzufügen / Mieterwechsel</h2>
+    <input type="hidden" id="mWohnId">
+    <div class="grid2">
+      <div class="frow"><label>Vorname</label><input id="mmVorn"></div>
+      <div class="frow"><label>Nachname</label><input id="mmNach"></div>
+    </div>
+    <div class="grid3">
+      <div class="frow"><label>Einzug</label><input id="mmEinzug" type="date"></div>
+      <div class="frow"><label>NK-Vorauszahlung / Monat (€)</label><input id="mmVoraus" type="number" step="10"></div>
+      <div class="frow"><label>Personen</label><input id="mmPers" type="number" value="1"></div>
+    </div>
+    <div class="frow"><label>Auszugsdatum Vormieter (bei Wechsel)</label><input id="mmAuszug" type="date"></div>
+    <div class="dialog-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('dlgMieter').classList.remove('open')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveMieter()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──
+const DB_KEY = 'wohnverwaltung_v1';
+let DB = JSON.parse(localStorage.getItem(DB_KEY) || '{"wohnungen":[],"kosten":[]}');
+const save = () => localStorage.setItem(DB_KEY, JSON.stringify(DB));
+
+// ── LOOKUP TABLES ──
+const KOSTENARTEN = {
+  heizung:'Heizkosten', warmwasser:'Warmwasser', wasser:'Wasser/Abwasser',
+  muell:'Müllbeseitigung', hausmeister:'Hausmeisterdienste', versicherung:'Gebäudeversicherung',
+  grundsteuer:'Grundsteuer', aufzug:'Aufzug', treppe:'Treppenhaus/Beleuchtung',
+  garten:'Gartenpflege', sonstige:'Sonstige Betriebskosten'
+};
+const SCHLUESSEL = {
+  flaeche:'Nach Wohnfläche (§556 BGB)', einheiten:'Nach Wohneinheiten',
+  personen:'Nach Personenzahl', heizung_mix:'Heizung 50/50 (§9 HeizkostenV)'
+};
+
+// ── INIT SELECTS ──
+function initSelects() {
+  const ka = document.getElementById('oKostenart');
+  const sk = document.getElementById('oSchluessel');
+  ka.innerHTML = Object.entries(KOSTENARTEN).map(([v,l])=>`<option value="${v}">${l}</option>`).join('');
+  sk.innerHTML = Object.entries(SCHLUESSEL).map(([v,l])=>`<option value="${v}">${l}</option>`).join('');
+}
+
+// ── NAV ──
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  if (id === 'abrechnung') fillAbrechSel();
+  if (id === 'kosten') renderKosten();
+}
+
+// ── HELPERS ──
+const fe = n => new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(n||0);
+const fd = s => { if(!s) return '—'; const [y,m,d]=s.split('T')[0].split('-'); return `${d}.${m}.${y}`; };
+const fd2 = d => `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
+const setSel = (id, val) => { const s=document.getElementById(id); for(const o of s.options) if(o.value===val){s.value=val;break;} };
+const showLoad = t => { document.getElementById('loadingText').textContent=t||'Bitte warten…'; document.getElementById('loading').classList.add('show'); };
+const hideLoad = () => document.getElementById('loading').classList.remove('show');
+
+// ── UPLOAD / OCR ──
+const uz = document.getElementById('uploadZone');
+uz.ondragover = e => { e.preventDefault(); uz.classList.add('over'); };
+uz.ondragleave = () => uz.classList.remove('over');
+uz.ondrop = e => { e.preventDefault(); uz.classList.remove('over'); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); };
+
+const PROMPT = `Du analysierst einen deutschen Nebenkosten-Beleg. Antworte NUR mit einem JSON-Objekt, kein Markdown.
+Felder: kostenart (heizung|warmwasser|wasser|muell|hausmeister|versicherung|grundsteuer|aufzug|treppe|garten|sonstige), betrag (Dezimalzahl), jahr (Zahl), anbieter (String), umlageschluessel (flaeche|einheiten|personen|heizung_mix), erklaerung (ein Satz).`;
+
+async function handleFile(file) {
+  if (!file) return;
+  showLoad('Claude analysiert den Beleg…');
+  const reader = new FileReader();
+  reader.onload = async () => {
+    const b64 = reader.result.split(',')[1];
+    const mime = file.type;
+    try {
+      const content = mime === 'application/pdf'
+        ? [{type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},{type:'text',text:PROMPT}]
+        : [{type:'image',source:{type:'base64',media_type:mime,data:b64}},{type:'text',text:PROMPT}];
+      const resp = await fetch('/api/claude', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,messages:[{role:'user',content}]})
+      });
+      const data = await resp.json();
+      const text = (data.content||[]).map(b=>b.text||'').join('');
+      let p = {};
+      try { p = JSON.parse(text.replace(/```json|```/g,'').trim()); } catch{}
+      hideLoad();
+      document.getElementById('ocrBox').style.display = '';
+      setSel('oKostenart', p.kostenart||'sonstige');
+      setSel('oSchluessel', p.umlageschluessel||'flaeche');
+      document.getElementById('oBetrag').value = p.betrag||'';
+      document.getElementById('oJahr').value = p.jahr||new Date().getFullYear()-1;
+      document.getElementById('oAnbieter').value = p.anbieter||'';
+      document.getElementById('oErk').textContent = p.erklaerung||'';
+      document.getElementById('fileInput').value = '';
+    } catch(e) { hideLoad(); alert('Fehler: '+e.message); }
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveBeleg() {
+  DB.kosten.push({
+    id: Date.now().toString(),
+    kostenart: document.getElementById('oKostenart').value,
+    schluessel: document.getElementById('oSchluessel').value,
+    betrag: parseFloat(document.getElementById('oBetrag').value)||0,
+    jahr: parseInt(document.getElementById('oJahr').value)||2024,
+    anbieter: document.getElementById('oAnbieter').value
+  });
+  save();
+  document.getElementById('ocrBox').style.display = 'none';
+  renderKosten();
+  uz.innerHTML = '<div class="ico">✅</div><p><strong>Gespeichert!</strong></p>';
+  setTimeout(()=>{ uz.innerHTML='<div class="ico">📷</div><p><strong style="color:var(--green)">Weiteres Foto hochladen</strong><br>JPG · PNG · PDF</p>'; },2000);
+}
+
+function renderKosten() {
+  const jahr = parseInt(document.getElementById('filterJahr').value);
+  const k = DB.kosten.filter(x=>x.jahr===jahr);
+  const c = document.getElementById('kostenOut');
+  if (!k.length) { c.innerHTML='<div class="empty" style="padding:16px"><p>Noch keine Kosten für '+jahr+'.</p></div>'; return; }
+  const total = k.reduce((s,x)=>s+x.betrag,0);
+  c.innerHTML = `<table><thead><tr><th>Kostenart</th><th>Anbieter</th><th>Betrag</th><th>Schlüssel</th><th></th></tr></thead><tbody>
+    ${k.map(x=>`<tr>
+      <td>${KOSTENARTEN[x.kostenart]||x.kostenart}</td>
+      <td style="color:var(--muted)">${x.anbieter||'—'}</td>
+      <td><strong>${fe(x.betrag)}</strong></td>
+      <td style="font-size:12px">${SCHLUESSEL[x.schluessel]||x.schluessel}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="delBeleg('${x.id}')">🗑</button></td>
+    </tr>`).join('')}
+    <tr><td colspan="2" style="font-weight:700;border-top:2px solid var(--text)">Gesamt</td>
+        <td style="font-weight:700;border-top:2px solid var(--text)">${fe(total)}</td><td colspan="2" style="border-top:2px solid var(--text)"></td></tr>
+  </tbody></table>`;
+}
+
+function delBeleg(id) { DB.kosten=DB.kosten.filter(x=>x.id!==id); save(); renderKosten(); }
+
+// ── WOHNUNGEN ──
+let editWId = null;
+
+function openWohnungDlg(id=null) {
+  editWId = id;
+  document.getElementById('dlgWTitel').textContent = id ? 'Wohnung bearbeiten' : 'Wohnung hinzufügen';
+  ['wBez','wAdr','wFlaeche','wZimmer','mVorn','mNach','mEinzug','mVoraus'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('mPers').value='1';
+  if (id) {
+    const w = DB.wohnungen.find(x=>x.id===id);
+    document.getElementById('wBez').value=w.bez;
+    document.getElementById('wAdr').value=w.adr||'';
+    document.getElementById('wFlaeche').value=w.flaeche||'';
+    document.getElementById('wZimmer').value=w.zimmer||'';
+    const m=(w.mieter||[]).find(x=>!x.auszug);
+    if(m){document.getElementById('mVorn').value=m.vorn;document.getElementById('mNach').value=m.nach;document.getElementById('mEinzug').value=m.einzug||'';document.getElementById('mVoraus').value=m.voraus||'';document.getElementById('mPers').value=m.pers||1;}
+  }
+  document.getElementById('dlgWohnung').classList.add('open');
+}
+
+function saveWohnung() {
+  const bez=document.getElementById('wBez').value.trim();
+  if(!bez){alert('Bezeichnung fehlt');return;}
+  const data={id:editWId||Date.now().toString(),bez,adr:document.getElementById('wAdr').value.trim(),flaeche:parseFloat(document.getElementById('wFlaeche').value)||0,zimmer:parseInt(document.getElementById('wZimmer').value)||0};
+  if(editWId){
+    const w=DB.wohnungen.find(x=>x.id===editWId);
+    Object.assign(w,data);
+    const m=(w.mieter||[]).find(x=>!x.auszug);
+    if(m&&document.getElementById('mVorn').value.trim()){m.vorn=document.getElementById('mVorn').value.trim();m.nach=document.getElementById('mNach').value.trim();m.einzug=document.getElementById('mEinzug').value;m.voraus=parseFloat(document.getElementById('mVoraus').value)||0;m.pers=parseInt(document.getElementById('mPers').value)||1;}
+  } else {
+    data.mieter=[];
+    const vorn=document.getElementById('mVorn').value.trim();
+    if(vorn) data.mieter.push({id:Date.now()+'m',vorn,nach:document.getElementById('mNach').value.trim(),einzug:document.getElementById('mEinzug').value,auszug:null,voraus:parseFloat(document.getElementById('mVoraus').value)||0,pers:parseInt(document.getElementById('mPers').value)||1});
+    DB.wohnungen.push(data);
+  }
+  save();
+  document.getElementById('dlgWohnung').classList.remove('open');
+  renderWohnungen();
+}
+
+function renderWohnungen() {
+  const c=document.getElementById('wohnungenOut');
+  if(!DB.wohnungen.length){c.innerHTML='<div class="empty"><div class="ico">🏠</div><p>Noch keine Wohnungen. Klicke auf "+ Wohnung hinzufügen".</p></div>';return;}
+  c.innerHTML=DB.wohnungen.map(w=>{
+    const mieter=w.mieter||[];
+    return `<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+        <div>
+          <div style="font-weight:600;font-size:15px">${w.bez}${w.adr?` <span style="font-weight:400;color:var(--muted);font-size:13px">· ${w.adr}</span>`:''}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${w.flaeche?w.flaeche+' m²':''}${w.zimmer?' · '+w.zimmer+' Zimmer':''}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button class="btn btn-secondary btn-sm" onclick="openWohnungDlg('${w.id}')">✏️</button>
+          <button class="btn btn-secondary btn-sm" onclick="openMieterDlg('${w.id}')">+ Mieter</button>
+          <button class="btn btn-danger btn-sm" onclick="delWohnung('${w.id}')">🗑</button>
+        </div>
+      </div>
+      <table><thead><tr><th>Mieter</th><th>Einzug</th><th>Auszug</th><th>NK-Vorauszahlung</th><th>Personen</th><th>Status</th></tr></thead>
+      <tbody>${mieter.length?mieter.map(m=>`<tr>
+        <td><strong>${m.vorn} ${m.nach}</strong></td>
+        <td>${fd(m.einzug)}</td><td>${m.auszug?fd(m.auszug):'—'}</td>
+        <td>${m.voraus?fe(m.voraus)+' / Monat':'—'}</td>
+        <td>${m.pers||1}</td>
+        <td><span class="tag ${m.auszug?'tag-amber':'tag-green'}">${m.auszug?'Ausgezogen':'Aktiv'}</span></td>
+      </tr>`).join(''):'<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:14px">Kein Mieter eingetragen</td></tr>'}</tbody></table>
+    </div>`;
+  }).join('');
+}
+
+function delWohnung(id){if(!confirm('Wohnung löschen?'))return;DB.wohnungen=DB.wohnungen.filter(w=>w.id!==id);save();renderWohnungen();}
+
+// ── MIETER ──
+function openMieterDlg(wid){
+  document.getElementById('mWohnId').value=wid;
+  ['mmVorn','mmNach','mmEinzug','mmVoraus','mmAuszug'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('mmPers').value='1';
+  document.getElementById('dlgMieter').classList.add('open');
+}
+
+function saveMieter(){
+  const wid=document.getElementById('mWohnId').value;
+  const w=DB.wohnungen.find(x=>x.id===wid);
+  if(!w)return;
+  if(!w.mieter)w.mieter=[];
+  const auszug=document.getElementById('mmAuszug').value;
+  if(auszug)w.mieter.filter(m=>!m.auszug).forEach(m=>m.auszug=auszug);
+  w.mieter.push({id:Date.now()+'m',vorn:document.getElementById('mmVorn').value.trim(),nach:document.getElementById('mmNach').value.trim(),einzug:document.getElementById('mmEinzug').value,auszug:null,voraus:parseFloat(document.getElementById('mmVoraus').value)||0,pers:parseInt(document.getElementById('mmPers').value)||1});
+  save();
+  document.getElementById('dlgMieter').classList.remove('open');
+  renderWohnungen();
+}
+
+// ── ABRECHNUNG ──
+function fillAbrechSel(){
+  const s=document.getElementById('aWohnung');
+  s.innerHTML=DB.wohnungen.map(w=>`<option value="${w.id}">${w.bez}</option>`).join('');
+  fillMieterSel();
+}
+
+function fillMieterSel(){
+  const wid=document.getElementById('aWohnung').value;
+  const w=DB.wohnungen.find(x=>x.id===wid);
+  document.getElementById('aMieter').innerHTML=(w?.mieter||[]).map(m=>`<option value="${m.id}">${m.vorn} ${m.nach}</option>`).join('');
+}
+
+function calcAbrechnung(){
+  const wid=document.getElementById('aWohnung').value;
+  const mid=document.getElementById('aMieter').value;
+  const jahr=parseInt(document.getElementById('aJahr').value);
+  const w=DB.wohnungen.find(x=>x.id===wid);
+  const m=(w?.mieter||[]).find(x=>x.id===mid);
+  if(!w||!m){alert('Bitte Wohnung und Mieter wählen');return;}
+  const k=DB.kosten.filter(x=>x.jahr===jahr);
+  if(!k.length){alert(`Keine Kosten für ${jahr} erfasst.`);return;}
+
+  const gesamtF=DB.wohnungen.reduce((s,x)=>s+(x.flaeche||0),0)||1;
+  const gesamtE=DB.wohnungen.length||1;
+  const gesamtP=DB.wohnungen.reduce((s,w2)=>{const a=(w2.mieter||[]).find(x=>!x.auszug);return s+(a?a.pers||1:1);},0)||1;
+
+  const von=new Date(Math.max(new Date(m.einzug||`${jahr}-01-01`),new Date(jahr,0,1)));
+  const bis=new Date(Math.min(m.auszug?new Date(m.auszug):new Date(jahr,11,31),new Date(jahr,11,31)));
+  const tage=Math.max(0,Math.round((bis-von)/86400000)+1);
+  const zt=tage/365;
+
+  const rows=k.map(x=>{
+    let a;
+    switch(x.schluessel){
+      case 'flaeche':a=(w.flaeche||0)/gesamtF;break;
+      case 'einheiten':a=1/gesamtE;break;
+      case 'personen':a=(m.pers||1)/gesamtP;break;
+      case 'heizung_mix':a=0.5*((w.flaeche||0)/gesamtF)+0.5/gesamtE;break;
+      default:a=(w.flaeche||0)/gesamtF;
+    }
+    return{...x,anteil:a,ba:x.betrag*a*zt};
+  });
+
+  const summe=rows.reduce((s,r)=>s+r.ba,0);
+  const voraus=(m.voraus||0)*12*zt;
+  const diff=summe-voraus;
+
+  document.getElementById('abrOut').innerHTML=`
+  <div class="card no-print" style="display:flex;justify-content:flex-end;padding:10px 20px">
+    <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨️ Drucken / PDF</button>
+  </div>
+  <div class="card">
+    <div style="font-family:'Lora',serif;font-size:20px;margin-bottom:4px">Betriebskostenabrechnung ${jahr}</div>
+    <div class="abr-meta">
+      Wohneinheit: <strong>${w.bez}</strong>${w.adr?' · '+w.adr:''}<br>
+      Mieter/in: <strong>${m.vorn} ${m.nach}</strong><br>
+      Abrechnungszeitraum: 01.01.${jahr} – 31.12.${jahr}<br>
+      Bewohnter Zeitraum: ${fd2(von)} – ${fd2(bis)} (${tage} von 365 Tagen = ${(zt*100).toFixed(1)} %)<br>
+      Wohnfläche: ${w.flaeche} m² von ${gesamtF.toFixed(1)} m² gesamt (${((w.flaeche/gesamtF)*100).toFixed(1)} %)
+    </div>
+    <table>
+      <thead><tr><th>Kostenart</th><th>Gesamt</th><th>Schlüssel</th><th>Anteil</th><th>Zeitanteil</th><th>Ihr Betrag</th></tr></thead>
+      <tbody>
+        ${rows.map(r=>`<tr>
+          <td>${KOSTENARTEN[r.kostenart]||r.kostenart}<br><small style="color:var(--muted)">${r.anbieter||''}</small></td>
+          <td>${fe(r.betrag)}</td>
+          <td style="font-size:12px">${SCHLUESSEL[r.schluessel]||r.schluessel}</td>
+          <td>${(r.anteil*100).toFixed(1)} %</td>
+          <td>${(zt*100).toFixed(1)} %</td>
+          <td><strong>${fe(r.ba)}</strong></td>
+        </tr>`).join('')}
+        <tr><td colspan="5" style="font-weight:700;border-top:2px solid var(--text)">Summe Betriebskosten</td><td style="font-weight:700;border-top:2px solid var(--text)">${fe(summe)}</td></tr>
+        <tr><td colspan="5">Geleistete Vorauszahlungen (${fe(m.voraus||0)} × ${(12*zt).toFixed(1)} Monate)</td><td>− ${fe(voraus)}</td></tr>
+      </tbody>
+    </table>
+    <div class="abr-result ${diff>0?'abr-nz':'abr-gt'}">
+      ${diff>0?`💸 Nachzahlung: <strong>${fe(diff)}</strong>`:`✅ Guthaben: <strong>${fe(Math.abs(diff))}</strong>`}
+      <div style="font-size:12px;font-weight:400;margin-top:4px">${diff>0?'Bitte überweisen Sie den Betrag innerhalb von 30 Tagen.':'Der Betrag wird innerhalb von 30 Tagen erstattet.'}</div>
+    </div>
+    <div class="abr-legal">
+      Abrechnung gemäß § 556 BGB i.V.m. Betriebskostenverordnung (BetrKV). Heizkosten nach § 9 HeizkostenV (50 % verbrauchsabhängig / 50 % Fläche). Belegeinsicht gemäß § 259 BGB. Einwendungsfrist: 12 Monate nach Zugang (§ 556 Abs. 3 BGB).
+    </div>
+  </div>`;
+}
+
+// ── START ──
+initSelects();
+renderWohnungen();
+renderKosten();
+</script>
+</body>
+</html>
