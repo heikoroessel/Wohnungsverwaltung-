@@ -367,7 +367,7 @@ Wenn ein Feld nicht gefunden wird, setze es auf null.`;
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content }] })
+      body: JSON.stringify({ model: 'claude-sonnet-4-5-20251001', max_tokens: 1000, messages: [{ role: 'user', content }] })
     });
     const data = await response.json();
     const text = (data.content || []).map(b => b.text || '').join('');
