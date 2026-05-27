@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wohnungsverwaltung</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;600&family=Source+Sans+3:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg: #F4F1EC; --surface: #FDFCFA; --surface2: #EDE9E1; --border: #D5CFC4;
+  --text: #1E1C19; --muted: #7A756C; --green: #2A5C2E; --green-l: #E6EFE7;
+  --red: #B83232; --red-l: #FAEAEA; --amber: #C07A10; --amber-l: #FEF5E6;
+  --blue: #1A4A7A; --blue-l: #E6EEF7;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Source Sans 3', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; min-height: 100vh; }
+
+/* LOGIN */
+#loginScreen { min-height:100vh; background:var(--green); display:flex; align-items:center; justify-content:center; padding:20px; }
+.login-box { background:white; border-radius:16px; padding:48px; max-width:400px; width:100%; box-shadow:0 24px 64px rgba(0,0,0,0.3); }
+.login-box h1 { font-family:'Lora',serif; font-size:24px; margin-bottom:8px; }
+.login-box p { color:var(--muted); font-size:13px; margin-bottom:28px; }
+
+/* SETUP */
+#setupScreen { min-height:100vh; background:var(--amber); display:flex; align-items:center; justify-content:center; padding:20px; }
+.setup-box { background:white; border-radius:16px; padding:40px; max-width:480px; width:100%; }
+
+/* APP */
+#app { display:none; }
+header { background:var(--green); color:white; padding:0 24px; display:flex; align-items:stretch; justify-content:space-between; }
+header h1 { font-family:'Lora',serif; font-size:18px; font-weight:400; padding:16px 0; }
+.header-right { display:flex; align-items:center; gap:16px; font-size:13px; color:rgba(255,255,255,0.7); }
+.header-right button { background:rgba(255,255,255,0.15); border:none; color:white; padding:6px 14px; border-radius:5px; cursor:pointer; font-size:12px; }
+
+/* SIDEBAR + MAIN */
+.app-body { display:flex; min-height:calc(100vh - 56px); }
+.sidebar { width:220px; background:var(--surface); border-right:1px solid var(--border); padding:16px 0; flex-shrink:0; }
+.sidebar-section { padding:0 12px; margin-bottom:20px; }
+.sidebar-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--muted); padding:0 8px; margin-bottom:6px; }
+.nav-item { display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:6px; cursor:pointer; font-size:13px; color:var(--text); border:none; background:none; width:100%; text-align:left; transition:all 0.15s; }
+.nav-item:hover { background:var(--surface2); }
+.nav-item.active { background:var(--green-l); color:var(--green); font-weight:600; }
+.nav-item .ico { font-size:15px; width:20px; text-align:center; }
+.main { flex:1; padding:24px; max-width:1200px; overflow-x:hidden; }
+
+/* CARDS */
+.card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px; margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,0.05); }
+.card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.card-title { font-weight:600; font-size:15px; }
+.page-title { font-family:'Lora',serif; font-size:22px; font-weight:400; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+/* FORMS */
+.frow { margin-bottom:12px; }
+label { display:block; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.6px; color:var(--muted); margin-bottom:4px; }
+input, select, textarea { width:100%; padding:8px 11px; border:1px solid var(--border); border-radius:6px; font-family:'Source Sans 3',sans-serif; font-size:13px; background:var(--bg); color:var(--text); outline:none; transition:border-color 0.18s; }
+input:focus, select:focus, textarea:focus { border-color:var(--green); background:white; }
+textarea { resize:vertical; min-height:60px; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:11px; }
+.grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:11px; }
+
+/* BUTTONS */
+.btn { display:inline-flex; align-items:center; gap:5px; padding:7px 15px; border-radius:6px; font-family:'Source Sans 3',sans-serif; font-size:13px; font-weight:500; cursor:pointer; border:1px solid transparent; transition:all 0.15s; }
+.btn-primary { background:var(--green); color:white; }
+.btn-primary:hover { background:#1e4421; }
+.btn-secondary { background:var(--surface2); color:var(--text); border-color:var(--border); }
+.btn-secondary:hover { background:var(--border); }
+.btn-danger { background:var(--red); color:white; }
+.btn-danger:hover { background:#8f2626; }
+.btn-amber { background:var(--amber); color:white; }
+.btn-sm { padding:4px 10px; font-size:12px; }
+.btn-full { width:100%; justify-content:center; padding:10px; }
+
+/* TABLES */
+table { width:100%; border-collapse:collapse; }
+th { text-align:left; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--muted); padding:7px 10px; border-bottom:2px solid var(--border); }
+td { padding:9px 10px; border-bottom:1px solid var(--surface2); font-size:13px; vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tbody tr:hover td { background:var(--bg); }
+
+/* TAGS */
+.tag { display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; }
+.tag-green { background:var(--green-l); color:var(--green); }
+.tag-amber { background:var(--amber-l); color:var(--amber); }
+.tag-red { background:var(--red-l); color:var(--red); }
+.tag-blue { background:var(--blue-l); color:var(--blue); }
+
+/* OVERLAY */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:500; display:none; align-items:center; justify-content:center; padding:20px; }
+.overlay.open { display:flex; }
+.dialog { background:white; border-radius:12px; padding:26px; width:600px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
+.dialog h2 { font-family:'Lora',serif; font-size:18px; font-weight:400; margin-bottom:18px; }
+.dialog-footer { display:flex; justify-content:flex-end; gap:8px; margin-top:18px; padding-top:14px; border-top:1px solid var(--border); }
+
+/* UPLOAD ZONE */
+.upload-zone { border:2px dashed var(--border); border-radius:10px; padding:32px; text-align:center; cursor:pointer; transition:all 0.2s; background:var(--bg); }
+.upload-zone:hover, .upload-zone.over { border-color:var(--green); background:var(--green-l); }
+.upload-zone .ico { font-size:28px; margin-bottom:8px; }
+.upload-zone p { color:var(--muted); font-size:13px; line-height:1.6; }
+
+/* KI BOX */
+.ki-box { background:var(--green-l); border:1px solid #a8c9aa; border-radius:8px; padding:16px; margin-top:14px; }
+.ki-box h4 { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--green); margin-bottom:12px; }
+
+/* LOADING */
+#loadingOverlay { position:fixed; inset:0; background:rgba(42,92,46,0.9); z-index:999; display:none; align-items:center; justify-content:center; flex-direction:column; gap:14px; color:white; font-size:15px; }
+#loadingOverlay.show { display:flex; }
+.spin { width:40px; height:40px; border:3px solid rgba(255,255,255,0.25); border-top-color:white; border-radius:50%; animation:spin 0.7s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* STATS GRID */
+.stats-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; margin-bottom:24px; }
+.stat-card { background:white; border:1px solid var(--border); border-radius:10px; padding:20px; }
+.stat-number { font-family:'Lora',serif; font-size:32px; color:var(--green); }
+.stat-label { font-size:12px; color:var(--muted); margin-top:4px; }
+
+/* OBJEKT GRID */
+.objekt-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px; }
+.objekt-card { background:white; border:1px solid var(--border); border-radius:10px; padding:18px; cursor:pointer; transition:all 0.18s; position:relative; }
+.objekt-card:hover { border-color:var(--green); box-shadow:0 4px 16px rgba(42,92,46,0.1); transform:translateY(-1px); }
+.objekt-kuerzel { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--green); margin-bottom:4px; }
+.objekt-name { font-weight:600; font-size:15px; margin-bottom:4px; }
+.objekt-adresse { font-size:12px; color:var(--muted); }
+.objekt-meta { display:flex; gap:10px; margin-top:12px; padding-top:10px; border-top:1px solid var(--surface2); }
+.objekt-meta span { font-size:12px; color:var(--muted); }
+
+/* DOK TYPES */
+.dok-typ-badge { padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; }
+.dok-mietvertrag { background:#dbeafe; color:#1e40af; }
+.dok-hausverwaltung { background:#d1fae5; color:#065f46; }
+.dok-handwerker { background:#fef3c7; color:#92400e; }
+.dok-grundsteuer { background:#ede9fe; color:#5b21b6; }
+.dok-sonstiges { background:#f3f4f6; color:#374151; }
+
+/* BREADCRUMB */
+.breadcrumb { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted); margin-bottom:16px; }
+.breadcrumb a { color:var(--green); cursor:pointer; text-decoration:none; }
+.breadcrumb a:hover { text-decoration:underline; }
+.breadcrumb .sep { color:var(--border); }
+
+/* ALERT */
+.alert { padding:10px 14px; border-radius:6px; font-size:13px; margin-bottom:12px; }
+.alert-success { background:var(--green-l); color:var(--green); }
+.alert-error { background:var(--red-l); color:var(--red); }
+.alert-info { background:var(--amber-l); color:var(--amber); }
+
+hr.div { border:none; border-top:1px solid var(--border); margin:14px 0; }
+
+@media (max-width: 768px) {
+  .sidebar { display:none; }
+  .stats-grid { grid-template-columns:1fr; }
+  .grid2, .grid3 { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="loadingOverlay"><div class="spin"></div><span id="loadingText">Bitte warten…</span></div>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div style="font-size:36px;margin-bottom:12px">🏠</div>
+    <h1>Wohnungsverwaltung</h1>
+    <p>Bitte melden Sie sich an</p>
+    <div id="loginError" class="alert alert-error" style="display:none"></div>
+    <div class="frow"><label>Benutzername</label><input type="text" id="loginUser" placeholder="heiko"></div>
+    <div class="frow"><label>Passwort</label><input type="password" id="loginPass" placeholder="••••••••"></div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()" style="margin-top:8px">Anmelden</button>
+    <button class="btn btn-secondary btn-full" onclick="showSetup()" style="margin-top:8px;font-size:12px">Ersteinrichtung / Passwort ändern</button>
+  </div>
+</div>
+
+<!-- SETUP -->
+<div id="setupScreen" style="display:none">
+  <div class="setup-box">
+    <div style="font-size:32px;margin-bottom:12px">⚙️</div>
+    <h2 style="font-family:'Lora',serif;font-size:20px;margin-bottom:8px">Ersteinrichtung</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:20px">Benutzer anlegen oder Passwort ändern</p>
+    <div class="frow"><label>Setup-Key</label><input type="password" id="setupKey" placeholder="Vom Administrator erhalten"></div>
+    <div class="grid2">
+      <div class="frow"><label>Benutzername</label><input type="text" id="setupUser"></div>
+      <div class="frow"><label>Name</label><input type="text" id="setupName"></div>
+    </div>
+    <div class="frow"><label>Passwort</label><input type="password" id="setupPass"></div>
+    <div id="setupStatus" class="alert" style="display:none"></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-amber" onclick="doSetup()">Speichern</button>
+      <button class="btn btn-secondary" onclick="hideSetup()">Zurück</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <header>
+    <h1>🏠 Wohnungsverwaltung</h1>
+    <div class="header-right">
+      <span id="headerUser"></span>
+      <button onclick="doLogout()">Abmelden</button>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Navigation</div>
+        <button class="nav-item active" onclick="showPage('dashboard',this)">
+          <span class="ico">📊</span> Dashboard
+        </button>
+        <button class="nav-item" onclick="showPage('objekte',this)">
+          <span class="ico">🏘️</span> Objekte
+        </button>
+        <button class="nav-item" onclick="showPage('dokumente',this)">
+          <span class="ico">📁</span> Dokumente
+        </button>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Aktuelles Objekt</div>
+        <div id="sidebarObjekt" style="font-size:12px;color:var(--muted);padding:0 8px">Kein Objekt gewählt</div>
+      </div>
+    </div>
+
+    <div class="main">
+
+      <!-- DASHBOARD -->
+      <div id="page-dashboard" class="page">
+        <div class="page-title">Dashboard</div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-number" id="statObjekte">—</div>
+            <div class="stat-label">Objekte</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="statMieter">—</div>
+            <div class="stat-label">Aktive Mieter</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="statDokumente">—</div>
+            <div class="stat-label">Dokumente</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:12px">Schnellstart</div>
+          <p style="color:var(--muted);font-size:13px;line-height:1.7">
+            1. Unter <strong>Objekte</strong> alle Liegenschaften anlegen<br>
+            2. Pro Objekt Einheiten (Wohnung, Garage) definieren<br>
+            3. Mieter anlegen und Mietvertrag hochladen — Claude liest alles automatisch aus<br>
+            4. Hausverwaltungspakete hochladen für die Nebenkostenabrechnung
+          </p>
+        </div>
+      </div>
+
+      <!-- OBJEKTE -->
+      <div id="page-objekte" class="page" style="display:none">
+        <div class="page-title">
+          🏘️ Objekte
+          <button class="btn btn-primary btn-sm" onclick="openObjektDlg()">+ Objekt hinzufügen</button>
+        </div>
+        <div id="objektGrid" class="objekt-grid"></div>
+      </div>
+
+      <!-- OBJEKT DETAIL -->
+      <div id="page-objekt-detail" class="page" style="display:none">
+        <div class="breadcrumb">
+          <a onclick="showPage('objekte',null)">Objekte</a>
+          <span class="sep">›</span>
+          <span id="detailObjektName">—</span>
+        </div>
+        <div class="page-title">
+          <span id="detailObjektTitle">—</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary btn-sm" onclick="editCurrentObjekt()">✏️ Bearbeiten</button>
+            <button class="btn btn-primary btn-sm" onclick="openEinheitDlg()">+ Einheit</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Einheiten & Mieter</div>
+          </div>
+          <div id="einheitenList"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Dokumente</div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <select id="filterJahr" onchange="loadDokumente()" style="width:85px;padding:5px 8px;font-size:13px">
+                <option value="">Alle</option>
+                <option>2025</option><option>2024</option><option>2023</option><option>2022</option>
+                <option>2021</option><option>2020</option><option>2019</option><option>2018</option><option>2017</option>
+              </select>
+              <select id="filterTyp" onchange="loadDokumente()" style="width:160px;padding:5px 8px;font-size:13px">
+                <option value="">Alle Typen</option>
+                <option value="mietvertrag">Mietvertrag</option>
+                <option value="hausverwaltung_paket">HV-Paket</option>
+                <option value="nk_abrechnung">NK-Abrechnung</option>
+                <option value="grundsteuer">Grundsteuer</option>
+                <option value="handwerker_rechnung">Handwerker</option>
+                <option value="protokoll">Protokoll</option>
+                <option value="sonstiges">Sonstiges</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="openDokumentDlg()">+ Dokument</button>
+            </div>
+          </div>
+          <div id="dokumenteList"></div>
+        </div>
+      </div>
+
+      <!-- DOKUMENTE (global) -->
+      <div id="page-dokumente" class="page" style="display:none">
+        <div class="page-title">📁 Alle Dokumente</div>
+        <div class="card">
+          <p style="color:var(--muted);font-size:13px">Wähle ein Objekt um dessen Dokumente zu sehen.</p>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /app-body -->
+</div><!-- /app -->
+
+<!-- ══ DIALOGS ══ -->
+
+<!-- Objekt Dialog -->
+<div class="overlay" id="dlgObjekt" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="dialog" onclick="event.stopPropagation()">
+    <h2 id="dlgObjektTitle">Objekt hinzufügen</h2>
+    <div class="grid2">
+      <div class="frow"><label>Kürzel (z.B. AA Sauerbach)</label><input id="oKuerzel" placeholder="AA Sauerbach"></div>
+      <div class="frow"><label>Name / Bezeichnung</label><input id="oName" placeholder="Sauerbachstraße 99/1"></div>
+    </div>
+    <div class="frow"><label>Straße & Hausnummer</label><input id="oStrasse"></div>
+    <div class="grid2">
+      <div class="frow"><label>PLZ</label><input id="oPlz"></div>
+      <div class="frow"><label>Ort</label><input id="oOrt"></div>
+    </div>
+    <div class="frow"><label>Notizen</label><textarea id="oBeschreibung" rows="2"></textarea></div>
+    <div class="dialog-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('dlgObjekt').classList.remove('open')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveObjekt()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Einheit Dialog -->
+<div class="overlay" id="dlgEinheit" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="dialog" onclick="event.stopPropagation()">
+    <h2>Einheit hinzufügen</h2>
+    <div class="grid2">
+      <div class="frow"><label>Bezeichnung</label><input id="eBezeichnung" placeholder="z.B. OG links, Garage 1"></div>
+      <div class="frow"><label>Typ</label>
+        <select id="eTyp">
+          <option value="wohnung">Wohnung</option>
+          <option value="garage">Garage / Stellplatz</option>
+          <option value="gewerbe">Gewerbe</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid3">
+      <div class="frow"><label>Wohnfläche (m²)</label><input id="eFlaeche" type="number" step="0.5"></div>
+      <div class="frow"><label>Zimmer</label><input id="eZimmer" type="number"></div>
+      <div class="frow"><label>Lage</label><input id="eLage" placeholder="EG, OG, DG…"></div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('dlgEinheit').classList.remove('open')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveEinheit()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mieter Dialog -->
+<div class="overlay" id="dlgMieter" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="dialog" onclick="event.stopPropagation()">
+    <h2 id="dlgMieterTitle">Mieter hinzufügen</h2>
+    <input type="hidden" id="mEinheitId">
+    <input type="hidden" id="mMieterId">
+
+    <!-- Mietvertrag Upload für automatisches Ausfüllen -->
+    <div id="mietvertragUploadBox">
+      <div class="upload-zone" onclick="document.getElementById('mietvertragFile').click()">
+        <div class="ico">📄</div>
+        <p><strong style="color:var(--green)">Mietvertrag hochladen</strong><br>
+        Claude liest alle Daten automatisch aus — kein Eintippen nötig<br>
+        <span style="font-size:12px">PDF oder Bild</span></p>
+      </div>
+      <input type="file" id="mietvertragFile" accept=".pdf,image/*" style="display:none" onchange="analyseMietvertrag(this.files[0])">
+    </div>
+
+    <div id="mKiResult" class="ki-box" style="display:none">
+      <h4>✅ Aus Mietvertrag erkannt — bitte prüfen</h4>
+    </div>
+
+    <hr class="div">
+    <div style="font-weight:600;font-size:13px;margin-bottom:12px">Mieterdaten</div>
+    <div class="grid2">
+      <div class="frow"><label>Vorname</label><input id="mVorn"></div>
+      <div class="frow"><label>Nachname</label><input id="mNach"></div>
+    </div>
+    <div class="grid2">
+      <div class="frow"><label>E-Mail</label><input id="mEmail" type="email"></div>
+      <div class="frow"><label>Telefon</label><input id="mTel"></div>
+    </div>
+    <div class="frow"><label>Aktuelle Adresse (Straße)</label><input id="mStrasse"></div>
+    <div class="grid2">
+      <div class="frow"><label>PLZ</label><input id="mPlz"></div>
+      <div class="frow"><label>Ort</label><input id="mOrt"></div>
+    </div>
+    <hr class="div">
+    <div style="font-weight:600;font-size:13px;margin-bottom:12px">Mietkonditionen</div>
+    <div class="grid3">
+      <div class="frow"><label>Einzug</label><input id="mEinzug" type="date"></div>
+      <div class="frow"><label>Auszug (leer = aktiv)</label><input id="mAuszug" type="date"></div>
+      <div class="frow"><label>Kaltmiete / Monat (€)</label><input id="mKalt" type="number" step="10"></div>
+    </div>
+    <div class="grid2">
+      <div class="frow"><label>NK-Vorauszahlung / Monat (€)</label><input id="mVoraus" type="number" step="10"></div>
+      <div class="frow"><label>Kaution (€)</label><input id="mKaution" type="number" step="100"></div>
+    </div>
+    <div class="frow"><label>Notizen / Sondervereinbarungen</label><textarea id="mNotizen"></textarea></div>
+    <div class="dialog-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('dlgMieter').classList.remove('open')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveMieter()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Dokument Dialog -->
+<div class="overlay" id="dlgDokument" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="dialog" onclick="event.stopPropagation()">
+    <h2>Dokument hochladen</h2>
+    <div class="upload-zone" id="dokUploadZone" onclick="document.getElementById('dokFile').click()">
+      <div class="ico">📎</div>
+      <p><strong style="color:var(--green)">Datei auswählen</strong><br>PDF, Word, Excel, Bild — max. 50 MB</p>
+    </div>
+    <input type="file" id="dokFile" accept=".pdf,.doc,.docx,.xls,.xlsx,image/*" style="display:none" onchange="handleDokFile(this.files[0])">
+    <div id="dokFileName" style="font-size:12px;color:var(--green);margin-top:8px;display:none"></div>
+    <hr class="div">
+    <div class="grid2">
+      <div class="frow"><label>Typ</label>
+        <select id="dTyp">
+          <option value="hausverwaltung_paket">Hausverwaltungs-Paket</option>
+          <option value="mietvertrag">Mietvertrag</option>
+          <option value="nk_abrechnung">NK-Abrechnung (fertig)</option>
+          <option value="grundsteuer">Grundsteuer</option>
+          <option value="handwerker_rechnung">Handwerker-Rechnung</option>
+          <option value="protokoll">Protokoll / Sitzungsunterlage</option>
+          <option value="inserat">Inserat</option>
+          <option value="sonstiges">Sonstiges</option>
+        </select>
+      </div>
+      <div class="frow"><label>Jahr</label>
+        <select id="dJahr">
+          <option value="">— wählen —</option>
+          <option>2026</option><option>2025</option><option>2024</option><option>2023</option>
+          <option>2022</option><option>2021</option><option>2020</option><option>2019</option>
+          <option>2018</option><option>2017</option>
+        </select>
+      </div>
+    </div>
+    <div class="frow"><label>Bezeichnung</label><input id="dBez" placeholder="z.B. NK-Paket 2025, Mietvertrag Muster"></div>
+    <div class="grid2">
+      <div class="frow"><label>Einheit (optional)</label><select id="dEinheit"><option value="">— alle —</option></select></div>
+      <div class="frow"><label>Mieter (optional)</label><select id="dMieter"><option value="">— kein —</option></select></div>
+    </div>
+    <div class="frow"><label>Notizen</label><textarea id="dNotizen" rows="2"></textarea></div>
+    <div class="dialog-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('dlgDokument').classList.remove('open')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveDokument()">Hochladen & Speichern</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════
+let currentUser = null;
+let currentObjektId = null;
+let currentObjektData = null;
+let editObjektId = null;
+let dokFile = null;
+
+// ══════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════
+const $ = id => document.getElementById(id);
+const fe = n => new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(n||0);
+const fd = s => { if(!s) return '—'; const [y,m,d]=s.split('T')[0].split('-'); return `${d}.${m}.${y}`; };
+const showLoad = t => { $('loadingText').textContent = t||'Bitte warten…'; $('loadingOverlay').classList.add('show'); };
+const hideLoad = () => $('loadingOverlay').classList.remove('show');
+const showAlert = (el, msg, type='success') => { el.className=`alert alert-${type}`; el.textContent=msg; el.style.display=''; };
+
+async function api(url, opts={}) {
+  const r = await fetch(url, { headers:{'Content-Type':'application/json'}, ...opts });
+  if (!r.ok) { const e = await r.json().catch(()=>({error:r.statusText})); throw new Error(e.error||r.statusText); }
+  return r.json();
+}
+
+// ══════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════
+async function init() {
+  try {
+    const me = await api('/api/me');
+    currentUser = me;
+    $('headerUser').textContent = me.name;
+    $('loginScreen').style.display = 'none';
+    $('app').style.display = 'block';
+    loadDashboard();
+    loadObjekte();
+  } catch(e) {
+    $('loginScreen').style.display = 'flex';
+  }
+}
+
+async function doLogin() {
+  const username = $('loginUser').value.trim();
+  const password = $('loginPass').value;
+  $('loginError').style.display = 'none';
+  try {
+    showLoad('Anmelden…');
+    await api('/api/login', { method:'POST', body: JSON.stringify({username, password}) });
+    hideLoad();
+    await init();
+  } catch(e) {
+    hideLoad();
+    showAlert($('loginError'), e.message, 'error');
+  }
+}
+
+async function doLogout() {
+  await api('/api/logout', {method:'POST'});
+  location.reload();
+}
+
+document.addEventListener('keydown', e => { if(e.key==='Enter' && $('loginScreen').style.display!=='none') doLogin(); });
+
+function showSetup() { $('loginScreen').style.display='none'; $('setupScreen').style.display='flex'; }
+function hideSetup() { $('setupScreen').style.display='none'; $('loginScreen').style.display='flex'; }
+
+async function doSetup() {
+  const st = $('setupStatus');
+  try {
+    await api('/api/setup', { method:'POST', body: JSON.stringify({
+      setupKey: $('setupKey').value,
+      username: $('setupUser').value,
+      password: $('setupPass').value,
+      name: $('setupName').value
+    })});
+    showAlert(st, '✅ Benutzer gespeichert! Sie können sich jetzt anmelden.', 'success');
+  } catch(e) { showAlert(st, '❌ ' + e.message, 'error'); }
+}
+
+// ══════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.style.display='none');
+  const p = $('page-'+id);
+  if(p) p.style.display='block';
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  else {
+    document.querySelectorAll('.nav-item').forEach(b => {
+      if(b.textContent.toLowerCase().includes(id.split('-')[0])) b.classList.add('active');
+    });
+  }
+}
+
+// ══════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════
+async function loadDashboard() {
+  try {
+    const stats = await api('/api/dashboard');
+    $('statObjekte').textContent = stats.objekte;
+    $('statMieter').textContent = stats.aktive_mieter;
+    $('statDokumente').textContent = stats.dokumente;
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════
+//  OBJEKTE
+// ══════════════════════════════════════
+let alleObjekte = [];
+
+async function loadObjekte() {
+  try {
+    alleObjekte = await api('/api/objekte');
+    renderObjekte();
+  } catch(e) {}
+}
+
+function renderObjekte() {
+  const grid = $('objektGrid');
+  if(!alleObjekte.length) {
+    grid.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted)"><div style="font-size:36px;margin-bottom:10px">🏠</div><p>Noch keine Objekte. Klicke auf "+ Objekt hinzufügen".</p></div>';
+    return;
+  }
+  grid.innerHTML = alleObjekte.map(o => `
+    <div class="objekt-card" onclick="openObjektDetail(${o.id})">
+      <div class="objekt-kuerzel">${o.kuerzel}</div>
+      <div class="objekt-name">${o.name}</div>
+      <div class="objekt-adresse">${o.strasse ? o.strasse + ', ' : ''}${o.plz||''} ${o.ort||''}</div>
+      <div class="objekt-meta">
+        <span>🏠 ${o.einheiten_count} Einheit${o.einheiten_count!=1?'en':''}</span>
+        <span>👤 ${o.aktive_mieter} Mieter</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openObjektDlg(id=null) {
+  editObjektId = id;
+  if(id) {
+    const o = alleObjekte.find(x=>x.id===id);
+    $('oKuerzel').value=o.kuerzel; $('oName').value=o.name;
+    $('oStrasse').value=o.strasse||''; $('oPlz').value=o.plz||'';
+    $('oOrt').value=o.ort||''; $('oBeschreibung').value=o.beschreibung||'';
+    $('dlgObjektTitle').textContent='Objekt bearbeiten';
+  } else {
+    ['oKuerzel','oName','oStrasse','oPlz','oOrt','oBeschreibung'].forEach(i=>$(i).value='');
+    $('dlgObjektTitle').textContent='Objekt hinzufügen';
+  }
+  $('dlgObjekt').classList.add('open');
+}
+
+async function saveObjekt() {
+  const data = { kuerzel:$('oKuerzel').value, name:$('oName').value, strasse:$('oStrasse').value,
+    plz:$('oPlz').value, ort:$('oOrt').value, beschreibung:$('oBeschreibung').value };
+  try {
+    showLoad('Speichern…');
+    if(editObjektId) await api(`/api/objekte/${editObjektId}`, {method:'PUT', body:JSON.stringify(data)});
+    else await api('/api/objekte', {method:'POST', body:JSON.stringify(data)});
+    hideLoad();
+    $('dlgObjekt').classList.remove('open');
+    await loadObjekte();
+    loadDashboard();
+  } catch(e) { hideLoad(); alert(e.message); }
+}
+
+function editCurrentObjekt() { openObjektDlg(currentObjektId); }
+
+// ══════════════════════════════════════
+//  OBJEKT DETAIL
+// ══════════════════════════════════════
+async function openObjektDetail(id) {
+  currentObjektId = id;
+  currentObjektData = alleObjekte.find(o=>o.id===id);
+  $('detailObjektName').textContent = currentObjektData?.kuerzel || '—';
+  $('detailObjektTitle').textContent = currentObjektData?.name || '—';
+  $('sidebarObjekt').textContent = currentObjektData?.kuerzel || '—';
+  showPage('objekt-detail', null);
+  await Promise.all([loadEinheiten(), loadDokumente()]);
+  // Populate einheit/mieter selects for dokument dialog
+  populateDokSelects();
+}
+
+async function loadEinheiten() {
+  if(!currentObjektId) return;
+  try {
+    const einheiten = await api(`/api/objekte/${currentObjektId}/einheiten`);
+    const list = $('einheitenList');
+    if(!einheiten.length) {
+      list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted)">Noch keine Einheiten. Klicke auf "+ Einheit".</div>';
+      return;
+    }
+    list.innerHTML = `<table>
+      <thead><tr><th>Einheit</th><th>Typ</th><th>Fläche</th><th>Aktueller Mieter</th><th>Einzug</th><th>NK-Vorauszahlung</th><th></th></tr></thead>
+      <tbody>
+        ${einheiten.map(e => `<tr>
+          <td><strong>${e.bezeichnung}</strong>${e.lage?` <span style="font-size:11px;color:var(--muted)">${e.lage}</span>`:''}</td>
+          <td><span class="tag ${e.typ==='wohnung'?'tag-green':'tag-blue'}">${e.typ}</span></td>
+          <td>${e.flaeche ? e.flaeche + ' m²' : '—'}</td>
+          <td>${e.nachname ? `${e.vorname||''} ${e.nachname}` : '<span style="color:var(--muted)">Leerstand</span>'}</td>
+          <td>${fd(e.einzug_datum)}</td>
+          <td>${e.nk_vorauszahlung ? fe(e.nk_vorauszahlung) + ' / Monat' : '—'}</td>
+          <td style="white-space:nowrap">
+            <button class="btn btn-secondary btn-sm" onclick="openMieterDlg(${e.id},${e.mieter_id||'null'})">
+              ${e.mieter_id ? '✏️ Mieter' : '+ Mieter'}
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="deletEinheit(${e.id})" style="margin-left:4px">🗑</button>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+  } catch(e) { console.error(e); }
+}
+
+let editEinheitId = null;
+function openEinheitDlg(id=null) {
+  editEinheitId = id;
+  ['eBezeichnung','eFlaeche','eZimmer','eLage'].forEach(i=>$(i).value='');
+  $('eTyp').value='wohnung';
+  $('dlgEinheit').classList.add('open');
+}
+
+async function saveEinheit() {
+  const data = { bezeichnung:$('eBezeichnung').value, typ:$('eTyp').value,
+    flaeche:$('eFlaeche').value||null, zimmer:$('eZimmer').value||null, lage:$('eLage').value };
+  try {
+    showLoad('Speichern…');
+    await api(`/api/objekte/${currentObjektId}/einheiten`, {method:'POST', body:JSON.stringify(data)});
+    hideLoad();
+    $('dlgEinheit').classList.remove('open');
+    loadEinheiten();
+    populateDokSelects();
+  } catch(e) { hideLoad(); alert(e.message); }
+}
+
+async function deletEinheit(id) {
+  if(!confirm('Einheit löschen? Alle zugehörigen Mieter werden ebenfalls gelöscht.')) return;
+  await api(`/api/einheiten/${id}`, {method:'DELETE'});
+  loadEinheiten();
+}
+
+// ══════════════════════════════════════
+//  MIETER
+// ══════════════════════════════════════
+function openMieterDlg(einheitId, mieterId=null) {
+  $('mEinheitId').value = einheitId;
+  $('mMieterId').value = mieterId || '';
+  $('dlgMieterTitle').textContent = mieterId ? 'Mieter bearbeiten' : 'Mieter hinzufügen';
+  $('mKiResult').style.display = 'none';
+  ['mVorn','mNach','mEmail','mTel','mStrasse','mPlz','mOrt','mEinzug','mAuszug','mKalt','mVoraus','mKaution','mNotizen']
+    .forEach(i=>$(i).value='');
+
+  if(mieterId) {
+    // Load existing mieter data
+    api(`/api/einheiten/${einheitId}/mieter`).then(mieter => {
+      const m = mieter.find(x=>x.id===mieterId);
+      if(!m) return;
+      $('mVorn').value=m.vorname||''; $('mNach').value=m.nachname||'';
+      $('mEmail').value=m.email||''; $('mTel').value=m.telefon||'';
+      $('mStrasse').value=m.strasse||''; $('mPlz').value=m.plz||''; $('mOrt').value=m.ort||'';
+      $('mEinzug').value=m.einzug_datum?.split('T')[0]||'';
+      $('mAuszug').value=m.auszug_datum?.split('T')[0]||'';
+      $('mKalt').value=m.miete_kalt||''; $('mVoraus').value=m.nk_vorauszahlung||'';
+      $('mKaution').value=m.kaution||''; $('mNotizen').value=m.notizen||'';
+    });
+  }
+  $('dlgMieter').classList.add('open');
+}
+
+async function analyseMietvertrag(file) {
+  if(!file) return;
+  showLoad('Claude liest Mietvertrag aus…');
+  try {
+    const fd2 = new FormData();
+    fd2.append('file', file);
+    const r = await fetch('/api/ki/analyse-mietvertrag', { method:'POST', body:fd2 });
+    const data = await r.json();
+    hideLoad();
+    if(data.success && data.data) {
+      const d = data.data;
+      if(d.mieter_vorname) $('mVorn').value=d.mieter_vorname;
+      if(d.mieter_nachname) $('mNach').value=d.mieter_nachname;
+      if(d.mieter_email) $('mEmail').value=d.mieter_email;
+      if(d.mieter_telefon) $('mTel').value=d.mieter_telefon;
+      if(d.mieter_strasse) $('mStrasse').value=d.mieter_strasse;
+      if(d.mieter_plz) $('mPlz').value=d.mieter_plz;
+      if(d.mieter_ort) $('mOrt').value=d.mieter_ort;
+      if(d.einzug_datum) $('mEinzug').value=d.einzug_datum;
+      if(d.miete_kalt) $('mKalt').value=d.miete_kalt;
+      if(d.nk_vorauszahlung) $('mVoraus').value=d.nk_vorauszahlung;
+      if(d.kaution) $('mKaution').value=d.kaution;
+      if(d.notizen) $('mNotizen').value=d.notizen;
+      $('mKiResult').style.display='';
+      $('mKiResult').innerHTML=`<h4>✅ Aus Mietvertrag erkannt — Felder wurden ausgefüllt</h4>
+        <p style="font-size:12px;color:var(--green)">${d.mieter_vorname||''} ${d.mieter_nachname||''} · Einzug: ${d.einzug_datum||'?'} · Miete: ${d.miete_kalt||'?'} € · NK: ${d.nk_vorauszahlung||'?'} €</p>`;
+    }
+  } catch(e) { hideLoad(); alert('Fehler: '+e.message); }
+}
+
+async function saveMieter() {
+  const einheitId = $('mEinheitId').value;
+  const mieterId = $('mMieterId').value;
+  const data = {
+    vorname:$('mVorn').value, nachname:$('mNach').value,
+    email:$('mEmail').value, telefon:$('mTel').value,
+    strasse:$('mStrasse').value, plz:$('mPlz').value, ort:$('mOrt').value,
+    einzug_datum:$('mEinzug').value||null, auszug_datum:$('mAuszug').value||null,
+    miete_kalt:$('mKalt').value||null, nk_vorauszahlung:$('mVoraus').value||null,
+    kaution:$('mKaution').value||null, notizen:$('mNotizen').value
+  };
+  if(!data.nachname) return alert('Nachname ist erforderlich');
+  try {
+    showLoad('Speichern…');
+    if(mieterId) await api(`/api/mieter/${mieterId}`, {method:'PUT', body:JSON.stringify(data)});
+    else await api(`/api/einheiten/${einheitId}/mieter`, {method:'POST', body:JSON.stringify(data)});
+    hideLoad();
+    $('dlgMieter').classList.remove('open');
+    loadEinheiten();
+    loadDashboard();
+  } catch(e) { hideLoad(); alert(e.message); }
+}
+
+// ══════════════════════════════════════
+//  DOKUMENTE
+// ══════════════════════════════════════
+async function populateDokSelects() {
+  if(!currentObjektId) return;
+  try {
+    const einheiten = await api(`/api/objekte/${currentObjektId}/einheiten`);
+    $('dEinheit').innerHTML = '<option value="">— alle —</option>' +
+      einheiten.map(e=>`<option value="${e.id}">${e.bezeichnung}</option>`).join('');
+    $('dMieter').innerHTML = '<option value="">— kein —</option>' +
+      einheiten.filter(e=>e.nachname).map(e=>`<option value="${e.mieter_id}">${e.vorname||''} ${e.nachname}</option>`).join('');
+  } catch(e) {}
+}
+
+function handleDokFile(file) {
+  if(!file) return;
+  dokFile = file;
+  $('dokFileName').textContent = '📎 ' + file.name + ' (' + (file.size/1024/1024).toFixed(1) + ' MB)';
+  $('dokFileName').style.display='';
+  // Auto-fill Bezeichnung
+  if(!$('dBez').value) $('dBez').value = file.name.replace(/\.[^.]+$/,'').replace(/_/g,' ');
+  // Auto-detect year from filename
+  const yearMatch = file.name.match(/20\d{2}/);
+  if(yearMatch) $('dJahr').value = yearMatch[0];
+}
+
+function openDokumentDlg() {
+  dokFile = null;
+  ['dBez','dNotizen'].forEach(i=>$(i).value='');
+  $('dTyp').value='hausverwaltung_paket';
+  $('dJahr').value='';
+  $('dokFileName').style.display='none';
+  $('dlgDokument').classList.add('open');
+}
+
+async function saveDokument() {
+  if(!dokFile) return alert('Bitte eine Datei auswählen');
+  if(!$('dBez').value) return alert('Bezeichnung fehlt');
+  const formData = new FormData();
+  formData.append('file', dokFile);
+  formData.append('typ', $('dTyp').value);
+  formData.append('bezeichnung', $('dBez').value);
+  formData.append('jahr', $('dJahr').value);
+  formData.append('einheit_id', $('dEinheit').value);
+  formData.append('mieter_id', $('dMieter').value);
+  formData.append('notizen', $('dNotizen').value);
+  try {
+    showLoad('Dokument wird hochgeladen…');
+    const r = await fetch(`/api/objekte/${currentObjektId}/dokumente`, {method:'POST', body:formData});
+    if(!r.ok) throw new Error((await r.json()).error);
+    hideLoad();
+    $('dlgDokument').classList.remove('open');
+    dokFile = null;
+    loadDokumente();
+    loadDashboard();
+  } catch(e) { hideLoad(); alert(e.message); }
+}
+
+async function loadDokumente() {
+  if(!currentObjektId) return;
+  const jahr = $('filterJahr')?.value || '';
+  const typ = $('filterTyp')?.value || '';
+  try {
+    const params = new URLSearchParams();
+    if(jahr) params.append('jahr', jahr);
+    if(typ) params.append('typ', typ);
+    const docs = await api(`/api/objekte/${currentObjektId}/dokumente?${params}`);
+    const list = $('dokumenteList');
+    if(!docs.length) {
+      list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted)">Keine Dokumente gefunden.</div>';
+      return;
+    }
+    const typLabels = {
+      mietvertrag:'Mietvertrag', hausverwaltung_paket:'HV-Paket', nk_abrechnung:'NK-Abrechnung',
+      grundsteuer:'Grundsteuer', handwerker_rechnung:'Handwerker', protokoll:'Protokoll',
+      inserat:'Inserat', sonstiges:'Sonstiges'
+    };
+    const typColors = {
+      mietvertrag:'dok-mietvertrag', hausverwaltung_paket:'dok-hausverwaltung',
+      nk_abrechnung:'dok-hausverwaltung', grundsteuer:'dok-grundsteuer',
+      handwerker_rechnung:'dok-handwerker', default:'dok-sonstiges'
+    };
+    list.innerHTML = `<table>
+      <thead><tr><th>Bezeichnung</th><th>Typ</th><th>Jahr</th><th>Mieter</th><th>Größe</th><th>Hochgeladen</th><th></th></tr></thead>
+      <tbody>
+        ${docs.map(d=>`<tr>
+          <td>
+            ${d.storage_url ? `<a href="${d.storage_url}" target="_blank" style="color:var(--green)">${d.bezeichnung}</a>` : d.bezeichnung}
+          </td>
+          <td><span class="dok-typ-badge ${typColors[d.typ]||typColors.default}">${typLabels[d.typ]||d.typ}</span></td>
+          <td>${d.jahr||'—'}</td>
+          <td>${d.nachname ? `${d.vorname||''} ${d.nachname}` : '—'}</td>
+          <td>${d.groesse_bytes ? (d.groesse_bytes/1024/1024).toFixed(1)+' MB' : '—'}</td>
+          <td>${fd(d.hochgeladen_am)}</td>
+          <td><button class="btn btn-danger btn-sm" onclick="deleteDok(${d.id})">🗑</button></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+  } catch(e) { console.error(e); }
+}
+
+async function deleteDok(id) {
+  if(!confirm('Dokument löschen?')) return;
+  await api(`/api/dokumente/${id}`, {method:'DELETE'});
+  loadDokumente();
+  loadDashboard();
+}
+
+// ══════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════
+init();
+</script>
+</body>
+</html>
